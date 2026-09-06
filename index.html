@@ -27,8 +27,21 @@
             aria-describedby="search-help"
           >
           <datalist id="participants"></datalist>
+
+          <label for="password">Password</label>
+          <div class="password-field">
+            <input
+              id="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Password"
+              aria-describedby="search-help"
+            >
+            <button id="toggle-password" class="password-toggle" type="button" aria-label="Tampilkan password">Lihat</button>
+          </div>
+
           <button id="search-button" type="button">LOGIN</button>
-          <p id="search-help" class="helper-text">Bisa juga ketik nama lalu pilih dari saran.</p>
+          <p id="search-help" class="helper-text">Bisa juga ketik nama lalu pilih dari saran. Password default: 4 digit terakhir NIK, kecuali sudah diganti.</p>
         </div>
         <div id="status" class="status" role="status" aria-live="polite"></div>
       </aside>
