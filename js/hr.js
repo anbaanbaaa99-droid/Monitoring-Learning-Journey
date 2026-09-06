@@ -570,7 +570,7 @@ async function openDetail(baseData) {
   if (typeof dialogEl.showModal === "function") dialogEl.showModal(); else dialogEl.setAttribute("open", "");
 
   try {
-    const response = await fetch(`${HR_API}?action=search&keyword=${encodeURIComponent(baseData.nik)}`, { cache: "no-store" });
+    const response = await fetch(`${HR_API}?action=search&keyword=${encodeURIComponent(baseData.nik)}&token=${encodeURIComponent(hrToken)}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
     const data = payload?.status && payload?.data ? payload.data : baseData;

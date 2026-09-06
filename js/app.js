@@ -1,10 +1,35 @@
 const API = "https://script.google.com/macros/s/AKfycbxbaop9HbasKeMj1d9CqG9jjTqJRq68Gv3f-8zaVobcbv6pDW3LRu4IJpFezpO2nFRi/exec";
 
 const searchInput = document.getElementById("search");
+const passwordInput = document.getElementById("password");
+const togglePasswordButton = document.getElementById("toggle-password");
 const searchButton = document.getElementById("search-button");
 const participantsList = document.getElementById("participants");
 const resultArea = document.getElementById("result");
 const statusArea = document.getElementById("status");
+
+const TOKEN_STORE_KEY = "ppm_participant_tokens_v1";
+let activeToken = "";
+
+function loadTokenStore() {
+  try { return JSON.parse(sessionStorage.getItem(TOKEN_STORE_KEY) || "{}"); }
+  catch { return {}; }
+}
+function getStoredToken(nik) {
+  const entry = loadTokenStore()[String(nik || "").trim()];
+  if (!entry || !entry.expiresAt) return "";
+  return new Date(entry.expiresAt).getTime() > Date.now() ? entry.token : "";
+}
+function storeToken(nik, token, expiresAt) {
+  const store = loadTokenStore();
+  store[String(nik || "").trim()] = { token, expiresAt };
+  sessionStorage.setItem(TOKEN_STORE_KEY, JSON.stringify(store));
+}
+function clearStoredToken(nik) {
+  const store = loadTokenStore();
+  delete store[String(nik || "").trim()];
+  sessionStorage.setItem(TOKEN_STORE_KEY, JSON.stringify(store));
+}
 
 const catalog = Array.isArray(window.TRAINING_CATALOG) ? window.TRAINING_CATALOG : [];
 const catalogByTitle = new Map();
@@ -27,11 +52,23 @@ searchButton.addEventListener("click", searchPPM);
 searchInput.addEventListener("keydown", event => {
   if (event.key === "Enter") searchPPM();
 });
+passwordInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") searchPPM();
+});
+if (togglePasswordButton) {
+  togglePasswordButton.addEventListener("click", () => {
+    const showing = passwordInput.type === "text";
+    passwordInput.type = showing ? "password" : "text";
+    togglePasswordButton.textContent = showing ? "Lihat" : "Sembunyikan";
+  });
+}
 
+// NIK dari link "Buka sebagai peserta" (HR) hanya mengisi field NIK.
+// Password tetap wajib diketik sendiri oleh peserta - tidak auto-login.
 const queryNIK = new URLSearchParams(window.location.search).get("nik");
 if (queryNIK) {
   searchInput.value = queryNIK;
-  window.addEventListener("DOMContentLoaded", () => searchPPM(), { once: true });
+  window.addEventListener("DOMContentLoaded", () => passwordInput.focus(), { once: true });
 }
 
 async function loadParticipants() {
@@ -68,19 +105,57 @@ async function searchPPM() {
 
   setLoading(true);
   resultArea.innerHTML = "";
-  setStatus("Mengambil data peserta...");
 
   try {
-    const response = await fetch(`${API}?action=search&keyword=${encodeURIComponent(keyword)}`, { cache: "no-store" });
+    let token = getStoredToken(keyword);
+
+    if (!token) {
+      const password = passwordInput.value;
+      if (!password) {
+        setStatus("Masukkan password untuk melanjutkan.", true);
+        passwordInput.focus();
+        return;
+      }
+
+      setStatus("Memeriksa NIK dan password...");
+      const loginResponse = await fetch(API, {
+        method: "POST",
+        body: new URLSearchParams({ action: "participantLogin", nik: keyword, password }),
+        cache: "no-store"
+      });
+      if (!loginResponse.ok) throw new Error(`HTTP ${loginResponse.status}`);
+      const loginPayload = await loginResponse.json();
+      if (requestId !== searchRequestId) return;
+
+      if (!loginPayload?.status || !loginPayload?.data?.token) {
+        setStatus(loginPayload?.message || "NIK atau password salah.", true);
+        return;
+      }
+
+      token = loginPayload.data.token;
+      storeToken(keyword, token, loginPayload.data.expiresAt);
+    }
+
+    activeToken = token;
+    setStatus("Mengambil data peserta...");
+
+    const response = await fetch(`${API}?action=search&keyword=${encodeURIComponent(keyword)}&token=${encodeURIComponent(token)}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
     if (requestId !== searchRequestId) return;
 
     if (!payload?.status || !payload?.data) {
+      if (payload?.code === "LOGIN_REQUIRED" || payload?.code === "UNAUTHORIZED") {
+        clearStoredToken(keyword);
+        activeToken = "";
+        setStatus("Sesi berakhir. Masukkan password lagi.", true);
+        return;
+      }
       setStatus(payload?.message || "Data peserta tidak ditemukan. Periksa kembali NIK atau nama.", true);
       return;
     }
 
+    passwordInput.value = "";
     renderJourney(payload.data);
     setStatus("");
     requestAnimationFrame(() => resultArea.scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -198,7 +273,7 @@ async function loadProgress(nik) {
   const participantNik = String(nik);
   const note = document.getElementById("participant-progress-note");
   try {
-    const response = await fetch(`${API}?action=progress&nik=${encodeURIComponent(nik)}&_=${Date.now()}`, { cache: "no-store" });
+    const response = await fetch(`${API}?action=progress&nik=${encodeURIComponent(nik)}&token=${encodeURIComponent(activeToken)}&_=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
     if (!payload?.status || !Array.isArray(payload?.data?.items)) throw new Error(payload?.message || "Endpoint progress belum tersedia");
@@ -246,6 +321,7 @@ async function handleProgressChange(event) {
       taskKey,
       title: module.title || "Materi Training",
       completed: String(desired),
+      token: activeToken,
       _: String(Date.now())
     });
     const response = await fetch(API, {
@@ -255,7 +331,13 @@ async function handleProgressChange(event) {
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
-    if (!payload?.status || !payload?.data) throw new Error(payload?.message || "Progress gagal disimpan");
+    if (!payload?.status || !payload?.data) {
+      if (payload?.code === "LOGIN_REQUIRED" || payload?.code === "UNAUTHORIZED") {
+        clearStoredToken(participantNik);
+        activeToken = "";
+      }
+      throw new Error(payload?.message || "Progress gagal disimpan");
+    }
 
     if (String(activeParticipant?.nik || "") === participantNik) {
       activeProgress.set(taskKey, payload.data);
