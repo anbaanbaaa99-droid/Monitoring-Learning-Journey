@@ -104,6 +104,7 @@ button{cursor:pointer}
   width:100%;
   min-width:0;
   padding:13px 14px;
+  margin-bottom:14px;
   border:1px solid #d9d2d7;
   border-radius:11px;
   background:#fff;
@@ -115,6 +116,26 @@ button{cursor:pointer}
 .login-card input:focus{
   border-color:var(--aeon);
   box-shadow:0 0 0 4px rgba(165,0,100,.10);
+}
+
+.login-card .password-field{position:relative;margin-bottom:14px}
+.login-card .password-field input{padding-right:86px;margin-bottom:0}
+.login-card .password-toggle{
+  position:absolute;
+  top:50%;
+  right:8px;
+  transform:translateY(-50%);
+  min-width:66px;
+  min-height:34px;
+  padding:6px 9px;
+  border:0;
+  border-radius:8px;
+  background:#f3eef1;
+  color:#5d5058;
+  font:inherit;
+  font-size:.72rem;
+  font-weight:850;
+  cursor:pointer;
 }
 
 .login-card button{
