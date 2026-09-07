@@ -239,7 +239,7 @@ function renderJourney(data) {
 
       <div class="task-list">
         <div class="task-header" aria-hidden="true">
-          <span>Judul</span><span>Link Post Test</span><span>Modul</span><span>Selesai</span>
+          <span>Judul</span><span>Post Test</span><span>Selesai</span>
         </div>
         ${rows}
       </div>` : rows}
@@ -252,13 +252,11 @@ function renderJourney(data) {
 function taskRow(module) {
   const title = module.title || "Materi Training";
   const postTest = safeURL(module.postTest);
-  const moduleLink = safeURL(module.moduleLink);
 
   return `
     <div class="task-row" data-task-key="${escapeAttribute(module.taskKey)}">
       <div class="task-title">${escapeHTML(title)}</div>
-      <div class="task-action post-test">${actionLink(postTest, "Buka Post Test", "")}</div>
-      <div class="task-action module">${actionLink(moduleLink, "Buka Modul", "module-link")}</div>
+      <div class="task-action post-test">${actionLink(postTest, "Buka Post Test", "module-link")}</div>
       <label class="completion-control" title="Tandai jika materi ini sudah dikerjakan">
         <input class="task-checkbox" type="checkbox" data-task-key="${escapeAttribute(module.taskKey)}" disabled>
         <span class="check-box" aria-hidden="true">✓</span>
@@ -389,7 +387,7 @@ function syncParticipantProgressUI() {
   bar.style.width = `${percent}%`;
   note.textContent = completed === total && total > 0
     ? "Semua materi pada assignment ini sudah ditandai selesai."
-    : "Centang setelah materi benar-benar sudah dikerjakan. Status tersimpan untuk monitoring HR.";
+    : "Centang setelah materi benar-benar sudah dikerjakan. Status tersimpan untuk monitoring HR/leader.";
 }
 
 function setRowSaving(taskKey, saving) {

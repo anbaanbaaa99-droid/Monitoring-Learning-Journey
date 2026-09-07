@@ -594,7 +594,6 @@ function renderDetail(data, fallback, apiFailed = false) {
 
 function detailTaskRow(module, participant, records) {
   const postTest = safeURL(module.postTest);
-  const moduleLink = safeURL(module.moduleLink);
   const key = createTaskKey(participant.section, participant.basic, module.title);
   const record = records.get(key);
   const done = progressBackendReady && Boolean(record?.completed);
@@ -603,7 +602,6 @@ function detailTaskRow(module, participant, records) {
     <div class="detail-task ${done ? "done" : ""}">
       <div class="detail-task-title">${escapeHTML(module.title || "Materi Training")}<small>${progressBackendReady ? (done ? `Selesai${completedAt ? ` • ${escapeHTML(completedAt)}` : ""}` : "Belum ditandai selesai") : "Progress belum aktif"}</small></div>
       ${postTest ? `<a class="detail-link post" href="${escapeAttribute(postTest)}" target="_blank" rel="noopener noreferrer">Post Test</a>` : `<span class="detail-link post disabled">Post Test</span>`}
-      ${moduleLink ? `<a class="detail-link module" href="${escapeAttribute(moduleLink)}" target="_blank" rel="noopener noreferrer">Modul</a>` : `<span class="detail-link module disabled">Modul</span>`}
       <span class="task-state ${done ? "done" : ""}">${done ? "✓ Selesai" : "Belum"}</span>
     </div>`;
 }

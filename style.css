@@ -358,7 +358,7 @@ button{cursor:pointer}
   .task-header{display:none}
   .task-row{grid-template-columns:1fr 1fr;gap:9px;padding:13px}
   .task-title{grid-column:1/-1;padding-bottom:3px}
-  .task-action.post-test,.task-action.module{display:block}
+  .task-action.post-test{display:block}
   .task-action::before{
     display:block;
     margin-bottom:5px;
@@ -368,8 +368,7 @@ button{cursor:pointer}
     text-transform:uppercase;
     letter-spacing:.05em;
   }
-  .task-action.post-test::before{content:"Link Post Test"}
-  .task-action.module::before{content:"Modul"}
+  .task-action.post-test::before{content:"Post Test"}
 }
 
 @media (max-width:430px){
@@ -393,7 +392,7 @@ button{cursor:pointer}
 .progress-track{height:9px;margin-top:10px;border-radius:999px;background:#eee8ec;overflow:hidden}
 .progress-track span{display:block;height:100%;border-radius:inherit;background:var(--aeon);transition:width .3s ease}
 .progress-note{margin:8px 0 0;color:var(--muted);font-size:.76rem;line-height:1.45}
-.task-header,.task-row{grid-template-columns:minmax(0,1.65fr) minmax(130px,.58fr) minmax(130px,.58fr) minmax(92px,.36fr)}
+.task-header,.task-row{grid-template-columns:minmax(0,1.85fr) minmax(150px,.66fr) minmax(100px,.4fr)}
 .completion-control{display:flex;align-items:center;justify-content:center;gap:7px;min-height:41px;padding:7px 8px;border:1px solid #ddd4da;border-radius:10px;background:#fff;cursor:pointer;user-select:none}
 .completion-control input{position:absolute;opacity:0;pointer-events:none}
 .check-box{display:grid;place-items:center;width:25px;height:25px;border:2px solid #b8afb5;border-radius:7px;background:#fff;color:transparent;font-size:.88rem;font-weight:950;transition:.15s}
@@ -407,7 +406,6 @@ button{cursor:pointer}
 @media (max-width:700px){
   .progress-panel{margin:12px 18px 0}
   .task-row{grid-template-columns:1fr 1fr}
-  .completion-control{grid-column:1/-1}
 }
 @media (max-width:430px){
   .task-row{grid-template-columns:1fr}
