@@ -119,14 +119,16 @@ button{cursor:pointer}
 }
 
 .login-card .password-field{position:relative;margin-bottom:14px}
-.login-card .password-field input{padding-right:86px;margin-bottom:0}
+.login-card .password-field input{padding-right:96px;margin-bottom:0}
 .login-card .password-toggle{
   position:absolute;
   top:50%;
   right:8px;
   transform:translateY(-50%);
+  width:auto;        /* ← TAMBAHKAN */
   min-width:66px;
   min-height:34px;
+  margin-top:0;      /* ← TAMBAHKAN */
   padding:6px 9px;
   border:0;
   border-radius:8px;
